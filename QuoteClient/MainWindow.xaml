@@ -21,22 +21,10 @@
         </StackPanel>
         <DockPanel Grid.Row="1" LastChildFill="True">
             <TextBlock Text="證券行情" DockPanel.Dock="Top" TextAlignment="Center" FontSize="16"></TextBlock>
-            <DataGrid AutoGenerateColumns="False"
-                      ColumnHeaderStyle="{StaticResource ColumnHeaderStyle}" ItemsSource="{Binding Quotes}" MaxHeight="1000" Background="Black"
+            <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Quotes}" MaxHeight="1000" Background="Black"
+                      ColumnHeaderStyle="{StaticResource ColumnHeaderStyle}" 
+                      RowStyle="{StaticResource RowStyle}"
                       CellStyle="{StaticResource CellStyle}" >
-                <DataGrid.Resources>
-                    <Style x:Key="TextBlockCell" TargetType="TextBlock">
-                        <Setter Property="VerticalAlignment" Value="Center" />
-                        <Setter Property="HorizontalAlignment" Value="Center" />
-                    </Style>
-                </DataGrid.Resources>
-                <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Setter Property="BorderThickness" Value="1" />
-                        <Setter Property="BorderBrush" Value="LightGray" />
-                        <Setter Property="Background" Value="Black" />
-                    </Style>
-                </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Quote.Stock.Name}" Header="商品" MinWidth="100" Foreground="White" ></DataGridTextColumn>
                     <DataGridTextColumn Binding="{Binding CurrentPrice}" Header="成交" MinWidth="120" CellStyle="{StaticResource ChangeCellStyle}" />
