@@ -1,0 +1,58 @@
+﻿<Window x:Class="QuoteClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:QuoteClient"
+        xmlns:vms="clr-namespace:QuoteClient.ViewModels"
+        mc:Ignorable="d"
+        Style="{StaticResource DefaultWindowStyle}"
+        Title="證券行情" Height="450" Width="550"
+        DataContext="{x:Static vms:MainViewModel.Instance}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Right"  >
+            <Slider Width="120" Margin="5,5,5,5" Minimum="10" Maximum="3000" Value="{Binding Interval}" LargeChange="5" SmallChange="1" TickFrequency="5"/>
+            <Label Content="{Binding Interval}"/>
+            <Button Width="60" HorizontalAlignment="Right" Margin="5,5,5,7" FontSize="16" Command="{Binding StartCommand}" Content="Start" />
+        </StackPanel>
+        <DockPanel Grid.Row="1" LastChildFill="True">
+            <TextBlock Text="證券行情" DockPanel.Dock="Top" TextAlignment="Center" FontSize="16"></TextBlock>
+            <DataGrid AutoGenerateColumns="False"
+                      ColumnHeaderStyle="{StaticResource ColumnHeaderStyle}" ItemsSource="{Binding Quotes}" MaxHeight="1000" Background="Black"
+                      CellStyle="{StaticResource CellStyle}" >
+                <DataGrid.Resources>
+                    <Style x:Key="TextBlockCell" TargetType="TextBlock">
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="HorizontalAlignment" Value="Center" />
+                    </Style>
+                </DataGrid.Resources>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="BorderBrush" Value="LightGray" />
+                        <Setter Property="Background" Value="Black" />
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding Quote.Stock.Name}" Header="商品" MinWidth="100" Foreground="White" ></DataGridTextColumn>
+                    <DataGridTextColumn Binding="{Binding CurrentPrice}" Header="成交" MinWidth="120" CellStyle="{StaticResource ChangeCellStyle}" />
+                    <DataGridTemplateColumn Header="漲跌" MinWidth="100"  CellStyle="{StaticResource ChangeRateCellStyle}">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Change}" />                    
+                                    <TextBlock Text="{Binding ChangeRate}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>                        
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Binding="{Binding CurrentVolume}" Header="成交量" CellStyle="{StaticResource ValueCellStyle}" MinWidth="150" Foreground="#FFEAD628"></DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+    </Grid>
+</Window>
