@@ -1,5 +1,4 @@
 ﻿using Models;
-using QuoteClient.ViewModels;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,19 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QuoteClient.Libs
+namespace Models
 {
-    internal class SimulateAdapter : IFeedAdapter
+    public class SimulateAdapter : IFeedAdapter
     {
         public SimulateAdapter()
         {
-            foreach (Stock stock in Stock.StockInfos.Values)
-            {
-                Quotes.TryAdd(stock.Symbol, new Quote() { Stock = stock, LastPrice = stock.RefPrice });
-            }
-        }
 
-        public ConcurrentDictionary<string, Quote> Quotes { get; set; } = new ConcurrentDictionary<string, Quote>();
+        }
 
         public void Start()
         {
@@ -32,7 +26,7 @@ namespace QuoteClient.Libs
                 while (true)
                 {
                     sw.Restart();
-                    foreach (Quote quote in Quotes.Values)
+                    foreach (Quote quote in Quote.Quotes.Values)
                     {
                         //增加差異
                         if (rnd.Next(0, 1000) > 900)

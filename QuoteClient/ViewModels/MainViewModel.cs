@@ -18,10 +18,15 @@ namespace QuoteClient.ViewModels
             startCommand = new RelayCommand(OnStart, CanStart);
 
             Interval = 10;
+
+            foreach (Quote q in Quote.Quotes.Values)
+            {
+                QuoteVMs.Add(new QuoteViewModel(q));
+            }
         }   
 
         private ObservableCollection<QuoteViewModel> quoteVMs = new ObservableCollection<QuoteViewModel>();
-        public ObservableCollection<QuoteViewModel> Quotes
+        public ObservableCollection<QuoteViewModel> QuoteVMs
         {
             get { return quoteVMs; }
             set { SetProperty(ref quoteVMs, value); }
@@ -43,12 +48,7 @@ namespace QuoteClient.ViewModels
 
         private void OnStart(object commandParameter)
         {
-            IFeedAdapter adapter = new Libs.SimulateAdapter();
-            foreach (Quote q in adapter.Quotes.Values)
-            {
-                quoteVMs.Add(new QuoteViewModel(q));
-            }
-
+            IFeedAdapter adapter = new SimulateAdapter();
             adapter.Start();
         }
 

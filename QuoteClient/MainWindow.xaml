@@ -21,7 +21,7 @@
         </StackPanel>
         <DockPanel Grid.Row="1" LastChildFill="True">
             <TextBlock Text="證券行情" DockPanel.Dock="Top" TextAlignment="Center" FontSize="16"></TextBlock>
-            <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Quotes}" MaxHeight="1000" Background="Black"
+            <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding QuoteVMs}" MaxHeight="1000" Background="Black"
                       ColumnHeaderStyle="{StaticResource ColumnHeaderStyle}" 
                       RowStyle="{StaticResource RowStyle}"
                       CellStyle="{StaticResource CellStyle}" >

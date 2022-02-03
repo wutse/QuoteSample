@@ -9,8 +9,6 @@ namespace Models
 {
     public interface IFeedAdapter
     {
-        ConcurrentDictionary<string, Quote> Quotes { get; set; }
-
         void Start();
 
 
