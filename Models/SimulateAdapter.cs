@@ -20,31 +20,40 @@ namespace Models
         private Task jobTask = null;
         private bool isStop = false;
 
+        public event FeedError OnFeedError;
+
         public void Start()
         {
             jobTask = Task.Run(() =>
             {
-                isStop = false;
-
-                Random rnd = new Random();
-                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                int index = 0;
-                Quote quote;
-                string[] symbols = Stock.StockInfos.Keys.ToArray();
-                while (true)
+                try
                 {
-                    if (isStop)
-                    {
-                        break;
-                    }
+                    isStop = false;
 
-                    sw.Restart();
-                    index = rnd.Next(0, 373);
-                    quote = Quote.Quotes[symbols[index]];
-                    quote.UpdateValues();
-                    sw.Stop();
-                    System.Diagnostics.Debug.WriteLine($"total ms = {sw.ElapsedMilliseconds}");
-                    Thread.Sleep(1);
+                    Random rnd = new Random();
+                    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                    int index = 0;
+                    Quote quote;
+                    string[] symbols = Stock.StockInfos.Keys.ToArray();
+                    while (true)
+                    {
+                        if (isStop)
+                        {
+                            break;
+                        }
+
+                        sw.Restart();
+                        index = rnd.Next(0, 373);
+                        quote = Quote.Quotes[symbols[index]];
+                        quote.UpdateValues();
+                        sw.Stop();
+                        System.Diagnostics.Debug.WriteLine($"total ms = {sw.ElapsedMilliseconds}");
+                        //Thread.Sleep(1); //Thread.Sleep(1) tends to block for somewhere between 12-15ms
+                    }
+                }
+                catch (Exception err)
+                {
+                    OnFeedError?.Invoke("Models.SimulateAdapter.Start", err);
                 }
             });
         }

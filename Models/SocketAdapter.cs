@@ -26,107 +26,129 @@ namespace Models
         public SocketAdapter()
         { }
 
-        private ManualResetEvent connectDone = new ManualResetEvent(false);
-        private ManualResetEvent sendDone = new ManualResetEvent(false);
-        private ManualResetEvent receiveDone = new ManualResetEvent(false);
-        private ManualResetEvent parseDone = new ManualResetEvent(false);
+        private ManualResetEvent connectDone = null;
+        private ManualResetEvent sendDone = null;
+        private ManualResetEvent receiveDone = null;
+        private ManualResetEvent parseDone = null;
 
         private ConcurrentQueue<string> srcQueue = new ConcurrentQueue<string>();
 
         private Task praseTask = null;
         private Task receiveTask = null;
 
-        private bool isStop = false;
+        private bool isStop = true;
 
         private Socket client = null;
+
+
+        private IPEndPoint targetServer = new IPEndPoint(new IPAddress(new byte[] { 127, 0, 0, 1 }), 12345);
+
+        public event FeedError OnFeedError;
 
         public void Start()
         {
             try
             {
-                IPEndPoint remoteEP = new IPEndPoint(new IPAddress(new byte[] { 127, 0, 0, 1 }), 12345);
+                connectDone = new ManualResetEvent(false);
+                sendDone = new ManualResetEvent(false);
+                receiveDone = new ManualResetEvent(false);
+                parseDone = new ManualResetEvent(false);
 
-                client = new Socket(remoteEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-                client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
+                client = new Socket(targetServer.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                client.BeginConnect(targetServer, new AsyncCallback(ConnectCallback), client);
                 connectDone.WaitOne();
 
-                isStop = false;
-
-                praseTask = Task.Run(() =>
+                if (client.Connected)
                 {
-                    StringBuilder sb = new StringBuilder();
-                    string queueString = null;
-                    string srcString = null;
-                    string pareseString = null;
-                    string [] srcDatas = null;
-                    Quote quote = null;
-                    parseDone.Set();
-                    while (true)
-                    {
-                        if (isStop)
-                        {
-                            break;
-                        }
+                    //isStop = false;
 
-                        if (srcQueue.TryDequeue(out queueString))
+                    praseTask = Task.Run(() =>
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        string queueString = null;
+                        string srcString = null;
+                        string pareseString = null;
+                        string[] srcDatas = null;
+                        Quote quote = null;
+                        parseDone.Set();
+                        while (true)
                         {
-                            //System.Diagnostics.Debug.WriteLine($"Queue count : {srcQueue.Count}, Dequeue data : {queueString}");
-                            sb.Append(queueString);
-                            srcString = sb.ToString();
-                            pareseString = srcString.Substring(0, srcString.LastIndexOf('|') + 1);
-                            srcDatas = pareseString.Split(new char[]{ '|' }, StringSplitOptions.RemoveEmptyEntries);
-                            foreach (string srcData in srcDatas)
+                            if (isStop)
                             {
-                                string[] srcs = srcData.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                                quote = Quote.Quotes[srcs[0]];
-                                quote.LastPrice = decimal.Parse(srcs[1]);
-                                quote.Volume = int.Parse(srcs[2]);
-                                quote.MarketTime = DateTime.Now;
+                                break;
                             }
 
-                            sb.Remove(0, pareseString.Length);
-                        }
-                        else
-                        {
-                            parseDone.WaitOne();
-                        }
-                    }
-                });
+                            if (srcQueue.TryDequeue(out queueString))
+                            {
+                                //System.Diagnostics.Debug.WriteLine($"Queue count : {srcQueue.Count}, Dequeue data : {queueString}");
+                                sb.Append(queueString);
+                                srcString = sb.ToString();
+                                pareseString = srcString.Substring(0, srcString.LastIndexOf('|') + 1);
+                                srcDatas = pareseString.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                                foreach (string srcData in srcDatas)
+                                {
+                                    string[] srcs = srcData.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                                    quote = Quote.Quotes[srcs[0]];
+                                    quote.LastPrice = decimal.Parse(srcs[1]);
+                                    quote.Volume = int.Parse(srcs[2]);
+                                    quote.MarketTime = DateTime.Now;
+                                }
 
-                receiveTask = Task.Run(() =>
-                {
-                    while (true)
+                                sb.Remove(0, pareseString.Length);
+                            }
+                            else
+                            {
+                                parseDone.WaitOne();
+                            }
+                        }
+                    });
+
+                    receiveTask = Task.Run(() =>
+                    {
+                        receiveDone.Set();
+
+                        while (true)
+                        {
+                            if (isStop)
+                            {
+                                break;
+                            }
+
+                            if (client.Connected)
+                            {
+                                Receive(client);
+                            }
+                            else
+                            {
+                                isStop = true;
+                                break;
+                            }
+
+                            receiveDone.WaitOne();
+                        }
+                    });
+
+                    var timer = new System.Timers.Timer(1000);
+                    timer.Elapsed += (obj, e) =>
                     {
                         if (isStop)
                         {
-                            break;
+                            timer.Stop();
                         }
 
-                        receiveDone.Set();
-
-                        if (client.Connected)
-                        {
-                            Receive(client);
-                        }
-
-                        receiveDone.WaitOne();
-                    }
-                });
-
-                var timer = new System.Timers.Timer(1000);
-                timer.Elapsed += (obj, e) =>
+                        System.Diagnostics.Debug.WriteLine($"Queue count : {srcQueue.Count}");
+                    };
+                    timer.AutoReset = true;
+                    timer.Enabled = true;
+                }
+                else
                 {
-                    System.Diagnostics.Debug.WriteLine($"Queue count : {srcQueue.Count}");
-                };
-                timer.AutoReset = true;
-                timer.Enabled = true;
-
+                }
             }
             catch (Exception err)
             {
                 System.Diagnostics.Debug.WriteLine(err.ToString());
-                //throw;
+                OnFeedError?.Invoke("Models.SocketAdapter.ConnectCallback", err);
             }
         }
 
@@ -134,28 +156,30 @@ namespace Models
         {
             try
             {
-                Socket client = (Socket)ar.AsyncState;
+                Socket socket = (Socket)ar.AsyncState;
+                socket.EndConnect(ar);
 
-                client.EndConnect(ar);
-
-                System.Diagnostics.Debug.WriteLine("Socket connected to {0}", client.RemoteEndPoint.ToString());
-
+                System.Diagnostics.Debug.WriteLine($"Socket connected to {socket.RemoteEndPoint.ToString()}");
+                isStop = false;
                 connectDone.Set();
             }
             catch (Exception err)
             {
                 System.Diagnostics.Debug.WriteLine(err.ToString());
-                //throw;
+
+                isStop = true;
+                connectDone.Set();
+                OnFeedError?.Invoke("Models.SocketAdapter.ConnectCallback", err);
             }
         }
 
-        private void Receive(Socket client)
+        private void Receive(Socket socket)
         {
             try
             {
                 StateObject state = new StateObject();
-                state.WorkSocket = client;
-                int bytesRec = client.Receive(state.Buffer);
+                state.WorkSocket = socket;
+                int bytesRec = socket.Receive(state.Buffer);
                 srcQueue.Enqueue(Encoding.ASCII.GetString(state.Buffer, 0, bytesRec));
 
                 parseDone.Set();
@@ -164,7 +188,7 @@ namespace Models
             catch (Exception err)
             {
                 System.Diagnostics.Debug.WriteLine(err.ToString());
-                //throw;
+                OnFeedError?.Invoke("Models.SocketAdapter.ConnectCallback", err);
             }
         }
 
@@ -178,7 +202,7 @@ namespace Models
             catch (Exception err)
             {
                 System.Diagnostics.Debug.WriteLine(err.ToString());
-                //throw;
+                OnFeedError?.Invoke("Models.SocketAdapter.ConnectCallback", err);
             }
         }
 
@@ -193,8 +217,8 @@ namespace Models
             }
             catch (Exception err)
             {
-                System.Diagnostics.Debug.Write(err.ToString());
-                //throw;
+                System.Diagnostics.Debug.WriteLine(err.ToString());
+                OnFeedError?.Invoke("Models.SocketAdapter.ConnectCallback", err);
             }
         }
     }

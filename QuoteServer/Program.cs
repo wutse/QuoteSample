@@ -53,7 +53,7 @@ namespace QuoteServer
                             }
                             sw.Stop();
                             System.Diagnostics.Debug.WriteLine($"total ms = {sw.ElapsedMilliseconds}");
-                            Thread.Sleep(1);
+                            //Thread.Sleep(1); //Thread.Sleep(1) tends to block for somewhere between 12-15ms
                         }
                     }
                     catch (Exception taskErr)

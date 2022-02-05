@@ -18,9 +18,15 @@ namespace QuoteClient.ViewModels
         {
             simulateStartCommand = new RelayCommand(OnSimulateStart, CanSimulateStart);
             simulateStopCommand = new RelayCommand(OnSimulateStop, CanSimulateStop);
+            
+            simulateAdapter = new SimulateAdapter();
+            simulateAdapter.OnFeedError += SimulateAdapter_OnFeedError;
 
             socketStartCommand = new RelayCommand(OnSocketStart, CanSocketStart);
             socketStopCommand = new RelayCommand(OnSocketStop, CanSocketStop);
+
+            socketAdapter = new SocketAdapter();
+            socketAdapter.OnFeedError += SocketAdapter_OnFeedError;
 
             Interval = 10;
 
@@ -28,7 +34,7 @@ namespace QuoteClient.ViewModels
             {
                 QuoteVMs.Add(new QuoteViewModel(q));
             }
-        } 
+        }
 
         private ObservableCollection<QuoteViewModel> quoteVMs = new ObservableCollection<QuoteViewModel>();
         public ObservableCollection<QuoteViewModel> QuoteVMs
@@ -51,7 +57,7 @@ namespace QuoteClient.ViewModels
         #region Commands
         #region Simulate
 
-        private IFeedAdapter simulateAdapter = new SimulateAdapter();
+        private IFeedAdapter simulateAdapter;
 
         private readonly RelayCommand simulateStartCommand;
         public ICommand SimulateStartCommand => simulateStartCommand;
@@ -93,11 +99,16 @@ namespace QuoteClient.ViewModels
             return true;
         }
 
+        private void SimulateAdapter_OnFeedError(object sender, Exception err)
+        {
+            MessageBox.Show(err.Message);
+        }
+
         #endregion
 
         #region Socket
 
-        private IFeedAdapter socketAdapter = new SocketAdapter();
+        private IFeedAdapter socketAdapter;
 
         private readonly RelayCommand socketStartCommand;
         public ICommand SocketStartCommand => socketStartCommand;
@@ -137,6 +148,11 @@ namespace QuoteClient.ViewModels
         private bool CanSocketStop(object commandParameter)
         {
             return true;
+        }
+
+        private void SocketAdapter_OnFeedError(object sender, Exception err)
+        {
+            MessageBox.Show(err.Message);
         }
 
         #endregion
