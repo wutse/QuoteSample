@@ -104,7 +104,7 @@ namespace QuoteClient.ViewModels
         /// <summary>
         /// 
         /// </summary>
-        public string ChangeRate => string.Format("({0:p2})", ((Quote.LastPrice - Quote.Stock.RefPrice) / Quote.Stock.RefPrice));
+        public string ChangeRate => string.Format("({0:p2})", (Quote.Stock.RefPrice == 0 ? 0 : ((Quote.LastPrice - Quote.Stock.RefPrice) / Quote.Stock.RefPrice)));
 
         private void Quote_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {

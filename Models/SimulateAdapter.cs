@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Models
@@ -16,40 +17,41 @@ namespace Models
 
         }
 
+        private Task jobTask = null;
+        private bool isStop = false;
+
         public void Start()
         {
-            Task.Run(() =>
+            jobTask = Task.Run(() =>
             {
+                isStop = false;
+
                 Random rnd = new Random();
                 System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                decimal step = 0m, tempPrice = 0m;
+                int index = 0;
+                Quote quote;
+                string[] symbols = Stock.StockInfos.Keys.ToArray();
                 while (true)
                 {
-                    sw.Restart();
-                    foreach (Quote quote in Quote.Quotes.Values)
+                    if (isStop)
                     {
-                        //增加差異
-                        if (rnd.Next(0, 1000) > 900)
-                        {
-                            continue;
-                        }
-
-                        step = (rnd.Next(0, 2) * 2 - 1) * PriceStepList.AllPriceSteps["Stock"].Where(c => c.Key > (quote.LastPrice == 0 ? quote.Stock.RefPrice : quote.LastPrice)).Min(c => c.Value);
-                        tempPrice = quote.LastPrice + step;
-                        if (tempPrice <= quote.Stock.LimitUp && tempPrice >= quote.Stock.LimitDown)
-                        {
-                            quote.LastPrice = tempPrice;
-                        }
-
-                        quote.Volume += rnd.Next(0, 2);
-
-                        quote.MarketTime = DateTime.Now;
+                        break;
                     }
+
+                    sw.Restart();
+                    index = rnd.Next(0, 373);
+                    quote = Quote.Quotes[symbols[index]];
+                    quote.UpdateValues();
                     sw.Stop();
                     System.Diagnostics.Debug.WriteLine($"total ms = {sw.ElapsedMilliseconds}");
-                    Task.Delay(1);
+                    Thread.Sleep(1);
                 }
             });
+        }
+
+        public void Stop()
+        {
+            isStop = true;
         }
     }
 }

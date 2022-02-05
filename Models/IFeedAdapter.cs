@@ -10,7 +10,7 @@ namespace Models
     public interface IFeedAdapter
     {
         void Start();
-
+        void Stop();
 
     }
 }

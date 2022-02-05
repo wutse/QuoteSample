@@ -9,6 +9,8 @@ namespace Models
 {
     public class Quote : ModelBase
     {
+        private Random rnd = new Random();
+
         public static ConcurrentDictionary<string, Quote> Quotes { get; set; } = new ConcurrentDictionary<string, Quote>();
         static Quote()
         {
@@ -53,6 +55,20 @@ namespace Models
         {
             get { return _marketTime; }
             set { SetProperty(ref _marketTime, value); }
+        }
+
+        public void UpdateValues() 
+        {
+            decimal step = (rnd.Next(0, 2) * 2 - 1) * PriceStepList.AllPriceSteps["Stock"].Where(c => c.Key > (this.LastPrice == 0 ? this.Stock.RefPrice : this.LastPrice)).Min(c => c.Value);
+            decimal tempPrice = this.LastPrice + step;
+            if (tempPrice <= this.Stock.LimitUp && tempPrice >= this.Stock.LimitDown)
+            {
+                this.LastPrice = tempPrice;
+            }
+
+            this.Volume += rnd.Next(0, 2);
+
+            this.MarketTime = DateTime.Now;
         }
     }
 }

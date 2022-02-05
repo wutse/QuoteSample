@@ -4,12 +4,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuoteClient", "QuoteClient\QuoteClient.csproj", "{76B6CE70-A56B-4966-A714-3FE291DDC9D2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3B9E4D5A-269C-42B5-803C-02CF824586BC} = {3B9E4D5A-269C-42B5-803C-02CF824586BC}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{37853F13-1287-4361-8946-358C1C71EF21}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuoteServer", "QuoteServer\QuoteServer.csproj", "{3B9E4D5A-269C-42B5-803C-02CF824586BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuoteServer", "QuoteServer\QuoteServer.csproj", "{3B9E4D5A-269C-42B5-803C-02CF824586BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketClient", "SocketClient\SocketClient.csproj", "{E4104BE1-31AE-4F08-BF14-B9F42517D443}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SocketClient", "SocketClient\SocketClient.csproj", "{E4104BE1-31AE-4F08-BF14-B9F42517D443}"
 	ProjectSection(ProjectDependencies) = postProject
 		{3B9E4D5A-269C-42B5-803C-02CF824586BC} = {3B9E4D5A-269C-42B5-803C-02CF824586BC}
 	EndProjectSection
