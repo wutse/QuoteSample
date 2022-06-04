@@ -19,6 +19,9 @@ namespace QuoteClient.ViewModels
             simulateStartCommand = new RelayCommand(OnSimulateStart, CanSimulateStart);
             simulateStopCommand = new RelayCommand(OnSimulateStop, CanSimulateStop);
             
+            openAllInOneCommand = new RelayCommand(OnOpenAllInOne, CanOpenAllInOne);
+            openTenCommand = new RelayCommand(OnOpenTen, CanOpenTen);
+
             simulateAdapter = new SimulateAdapter();
             simulateAdapter.OnFeedError += SimulateAdapter_OnFeedError;
 
@@ -28,19 +31,8 @@ namespace QuoteClient.ViewModels
             socketAdapter = new SocketAdapter();
             socketAdapter.OnFeedError += SocketAdapter_OnFeedError;
 
-            Interval = 10;
+            Interval = 0;
 
-            foreach (Quote q in Quote.Quotes.Values)
-            {
-                QuoteVMs.Add(new QuoteViewModel(q));
-            }
-        }
-
-        private ObservableCollection<QuoteViewModel> quoteVMs = new ObservableCollection<QuoteViewModel>();
-        public ObservableCollection<QuoteViewModel> QuoteVMs
-        {
-            get { return quoteVMs; }
-            set { SetProperty(ref quoteVMs, value); }
         }
 
 
@@ -156,6 +148,64 @@ namespace QuoteClient.ViewModels
         }
 
         #endregion
+
+        #region Open Win
+        private readonly RelayCommand openAllInOneCommand;
+        public ICommand OpenAllInOneCommand => openAllInOneCommand;
+
+        private void OnOpenAllInOne(object commandParameter)
+        {
+            try
+            {
+                QuoteViewModel qVM = new QuoteViewModel(Quote.Quotes.Values);
+                QuoteView qv = new QuoteView
+                {
+                    DataContext = qVM
+                };
+                qv.Show();
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.Message);
+            }
+        }
+
+        private bool CanOpenAllInOne(object commandParameter)
+        {
+            return true;
+        }
+
+        private readonly RelayCommand openTenCommand;
+        public ICommand OpenTenCommand => openTenCommand;
+
+        private void OnOpenTen(object commandParameter)
+        {
+            try
+            {
+                for (int i = 1; i < 10; i++)
+                {
+                    var qs = Quote.Quotes.Values.Where(s => s.Stock.Symbol.StartsWith(i.ToString()));
+
+                    QuoteViewModel qVM = new QuoteViewModel(qs);
+                    QuoteView qv = new QuoteView
+                    {
+                        DataContext = qVM
+                    };
+                    qv.Show();
+                }
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.Message);
+            }
+        }
+
+        private bool CanOpenTen(object commandParameter)
+        {
+            return true;
+        }
+        #endregion
+
         #endregion
     }
 }

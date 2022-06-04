@@ -15,25 +15,15 @@ namespace Models
         
         #region fields & properties
 
-        private string _symbol;
         /// <summary>
         /// 代碼
         /// </summary>
-        public string Symbol
-        {
-            get { return _symbol; }
-            set { SetProperty(ref _symbol, value); }
-        }
+        public string Symbol { get; private set; } 
 
-        private string _name;
         /// <summary>
         /// 名稱
         /// </summary>
-        public string Name 
-        {
-            get { return _name; }
-            set { SetProperty(ref _name, value); }
-        }
+        public string Name { get; set; }
 
         private decimal _refPrice;
         /// <summary>
@@ -47,7 +37,7 @@ namespace Models
 
         private decimal _limitUp;
         /// <summary>
-        /// 參考價
+        /// 漲停價
         /// </summary>
         public decimal LimitUp
         {
@@ -57,13 +47,17 @@ namespace Models
 
         private decimal _limitDown;
         /// <summary>
-        /// 參考價
+        /// 跌停價
         /// </summary>
         public decimal LimitDown
         {
             get { return _limitDown; }
             set { SetProperty(ref _limitDown, value); }
         }
+
+        public decimal Capital { get; set; }
+        public decimal EPS { get; set; }
+        public decimal MarketVlaue { get; set; }
 
         #endregion
 
@@ -72,7 +66,7 @@ namespace Models
             try
             {
                 string[] srcs = null;
-                using (StreamReader sr = new StreamReader("twse.csv", System.Text.Encoding.GetEncoding("big5")))
+                using (StreamReader sr = new StreamReader("Stocks_20220604.csv", System.Text.Encoding.GetEncoding("big5")))
                 {
                     srcs = sr.ReadToEnd().Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 }
@@ -81,23 +75,39 @@ namespace Models
                 string[] datas = null;
                 for (int i = 1; i < srcs.Length; i++)
                 {
-                    datas = srcs[i].Split(',' );
-
-                    stock = new Stock()
+                    try
                     {
-                        Symbol = datas[0],
-                        Name = datas[1],
-                        LimitUp = Convert.ToDecimal(datas[2]),
-                        LimitDown = Convert.ToDecimal(datas[4]),
-                        RefPrice = Convert.ToDecimal(datas[6]),
-                    };
+                        datas = srcs[i].Split(',');
 
-                    StockInfos.TryAdd(stock.Symbol, stock);
+                        stock = new Stock()
+                        {
+                            Symbol = datas[0],
+                            Name = datas[1],
+                            
+                        };
+
+                        decimal tempValue;
+                        decimal.TryParse(datas[13], out tempValue);
+                        stock.RefPrice = tempValue;
+                        decimal.TryParse(datas[17], out tempValue);
+                        stock.Capital = tempValue;
+                        decimal.TryParse(datas[19], out tempValue);
+                        stock.MarketVlaue = tempValue;
+                        stock.LimitUp = stock.RefPrice * 1.1m;
+                        stock.LimitDown = stock.RefPrice * 0.9m;
+
+                        StockInfos.TryAdd(stock.Symbol, stock);
+                    }
+                    catch (Exception dataErr)
+                    {
+                        string str = dataErr.Message;
+                        throw;
+                    }
                 }
             }
-            catch (Exception)
+            catch (Exception err)
             {
-
+                string str = err.Message;
                 throw;
             }
         }
